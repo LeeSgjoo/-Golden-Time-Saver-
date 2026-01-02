@@ -10,12 +10,14 @@ public class userVO {
     private String userName;
     private String password;
     private int userType;
+    private String phoneNum;
 
     public userVO(){};
-    public userVO(String userName, String password, int userType){
+    public userVO(String userName, String password, int userType, String phoneNum){
         this.userName = userName;
         this.password = password;
         this.userType = userType;
+        this.phoneNum = phoneNum;
     }
 
     public int getPersonId() {
@@ -48,5 +50,13 @@ public class userVO {
 
     public void setUserType(int userType) {
         this.userType = userType;
+    }
+
+    public String getPhoneNum() {
+        return phoneNum;
+    }
+
+    public void setPhoneNum(String phoneNum) {
+        this.phoneNum = phoneNum;
     }
 }

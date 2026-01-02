@@ -1,6 +1,6 @@
 package com.example.gts_project.patient;
 
-public class patient {
+public class patientVO {
     private int patientId;
     private int EMT_id;
     private int KTAS;
@@ -8,8 +8,8 @@ public class patient {
     private int cal_status;
     private int cal_hosp_id;
 
-    public patient(){};
-    public patient(int EMT_id, int KTAS, String symptoms, int cal_status, int cal_hosp_id) {
+    public patientVO(){};
+    public patientVO(int EMT_id, int KTAS, String symptoms, int cal_status, int cal_hosp_id) {
         this.EMT_id = EMT_id;
         this.KTAS = KTAS;
         this.symptoms = symptoms;
