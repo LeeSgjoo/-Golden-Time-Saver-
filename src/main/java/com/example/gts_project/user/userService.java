@@ -12,6 +12,4 @@ public interface userService {
     public int getUserCnt();
     public List<userVO> getUserList();
     public List<userVO> getUserListByUserType(int userType);
-
-    // public int getTodayUserCalories();
 }
