@@ -1,6 +1,6 @@
 package com.example.gts_project.patient;
 
-import com.example.gts_project.user.userVO;
+import com.example.gts_project.patient.patientVO;
 import java.util.List;
 
 public interface patientService {
@@ -36,5 +36,5 @@ public interface patientService {
     public int getPatientCnt_0();  // 대기 환자 수
     public int getPatientCnt_1();  // 수락 환자 수
 
-    public List<userVO> getUserList(); // 유저 목록 조회 (매퍼 기준)
+    public List<patientVO> getUserList(); // 유저 목록 조회 (매퍼 기준)
 }

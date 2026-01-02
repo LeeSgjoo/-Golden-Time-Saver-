@@ -18,6 +18,15 @@
         <result property="userId" column="UserId"/>
     </resultMap>
 
+    <!--
+    <hospital 테이블 객체>
+    === 병원 계정에서 ===
+    1. 전체 침대, 잔여 여석, 전체 의사, 대기 의사(이건 병원 데이터임)
+    =>병원의 personId를 UserId로 가진 HospitalVO를 불러오게 하면 됨(이후 객체의 멤버 털어서 쓰면 된다)
+    (2). 이송환자 리스트, 입원 환자 리스트 (이건 환자 테이블의 메서드를 사용하면 됨)
+    === 중앙 관리 센터에서 ===
+    1. 병원 리스트 HospId순으로 반환
+    -->
     <insert id="insertHospital">
         INSERT INTO gts.hospital (
             HospName, Address, Tel, OpHrs, Homepage, TotalDoc, AvailableDoc, TotalBeds, AvailableBeds, UserId
@@ -35,53 +44,11 @@
                  )
     </insert>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <select id="getUserByUserName" parameterType="String" resultMap="userResultMap">
-        SELECT * FROM gts.user WHERE UserName = #{userName}
+    <select id="getHospital" parameterType="int" resultMap="hospitalResultMap">
+        SELECT * FROM gts.hospital WHERE UserId = #{personId}
     </select>
-
-    <select id="getUserListByUserType" parameterType="int" resultMap="userResultMap">
-        SELECT * FROM gts.user WHERE UserType = #{userType}
-    </select>
-
-    <select id="getUser" parameterType="int" resultMap="userResultMap">
-        SELECT * FROM gts.user WHERE PersonId = #{personId}
-    </select>
-
-    <select id="getUserList" resultMap="userResultMap">
-        SELECT * FROM gts.user
-    </select>
-
-    <update id="updateUser">
-        UPDATE gts.user
-        SET
-            UserName = #{userName},
-            Password = #{password},
-            UserType = #{userType},
-            PhoneNum = #{phoneNum},
-            WHERE PersonId = #{personId}
-    </update>
-
-    <delete id = "deleteUser">
-        DELETE FROM gts.user WHERE PersonId = #{personId}
-    </delete>
-
-    <select id="getUserCnt" resultType="int">
-        SELECT count(*) FROM gts.user
+    <select id="getHospitalList" resultMap="hospitalResultMap">
+        SELECT * FROM gts.hospital ORDER BY HospId ASC
     </select>
 
 </mapper>

@@ -14,8 +14,8 @@
 
     <context:component-scan base-package="com.example.gts_project" />
 
-    <mvc:resources mapping="/**" location="/resources/static/" />
-    <mvc:resources mapping="/static/**" location="/resources/static/static/" />
+    <mvc:resources mapping="/**" location="classpath:/static/" />
+    <mvc:resources mapping="/static/**" location="classpath:/static/static/" />
     <mvc:resources mapping="/resources/**" location="/resources/" />
 
     <bean id="loginCheckInterceptor" class="com.example.gts_project.user.LoginCheckInterceptor" />
@@ -27,10 +27,10 @@
             <mvc:exclude-mapping path="/resources/**"/>
             <mvc:exclude-mapping path="/static/**"/>
             <mvc:exclude-mapping path="/favicon.ico"/>
+            <mvc:exclude-mapping path="/manifest.json"/>
 
             <mvc:exclude-mapping path="/auth/**"/>
             <mvc:exclude-mapping path="/api/auth/**"/>
-
             <mvc:exclude-mapping path="/"/>
 
             <ref bean="loginCheckInterceptor" />
@@ -43,4 +43,8 @@
     </bean>
 
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-        <property name="maxUploadSize" value
+        <property name="maxUploadSize" value="10485760" />
+        <property name="defaultEncoding" value="utf-8" />
+    </bean>
+
+</beans>
