@@ -16,6 +16,7 @@ public class userDAO {
         // namespace.id 형식으로 호출
         // 매퍼 파일(user-mapper.xml) 상단에 선언한 "namespace 값이 UserDAO인 것" // That is not this fileName
         // insertUser는 sql문 작성할 때 사용한 id 값
+        // 맵퍼에서 쓴 걸 다오에서 쓴다~
         return sqlSession.insert("userDAO.insertUser", vo);
     }
     public int deleteUser(int personId) {

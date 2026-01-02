@@ -2,6 +2,17 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace = "userDAO">
 
+    <!--
+    resultMap (which is tag/element): 데이터베이스에서 가져온 결과(ResultSet)를 자바 객체(VO/DTO)에 어떻게 매핑할지 정의하는 설계도 역할
+
+    ===================================================================================================================
+
+    <select id="getUser" resultMap="userResultMap">
+    SELECT PersonId, UserName FROM user  > </select>
+    ===================================================================================================================
+
+    => 마이바티스가 resultMap 설계도를 보고, **"아, PersonId 컬럼 값은 자바의 personId 변수에 담아주면 되는구나!"**라고 알아서 배달해 줍니다.
+    -->
     <resultMap id="userResultMap" type="com.example.gts_project.user.userVO">
         <id property="personId" column="PersonId"/>
         <result property="userName" column="UserName"/>
@@ -27,7 +38,7 @@
         SELECT * FROM gts.user WHERE UserType = #{userType}
     </select>
 
-    <select id="getUser" resultMap="userResultMap">
+    <select id="getUser" parameterType="int" resultMap="userResultMap">
         SELECT * FROM gts.user WHERE PersonId = #{personId}
     </select>
 
