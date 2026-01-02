@@ -89,9 +89,4 @@ public class patientServiceImpl implements patientService {
     public int getPatientCnt_1() {
         return patientDAO.getPatientCnt_1();
     }
-
-    @Override
-    public List<userVO> getUserList() {
-        return patientDAO.getUserList();
-    }
 }

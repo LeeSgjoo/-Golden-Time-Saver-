@@ -78,9 +78,4 @@ public class patientDAO {
     public List<patientVO> getPatientListByEMT_0(int personId) {
         return sqlSession.selectList("patientDAO.getPatientListByEMT_0", personId);
     }
-
-    // 13. 기타 유저 관련 조회 (유저 타입별 리스트 등)
-    public List<userVO> getUserList() {
-        return sqlSession.selectList("patientDAO.getUserList");
-    }
 }
