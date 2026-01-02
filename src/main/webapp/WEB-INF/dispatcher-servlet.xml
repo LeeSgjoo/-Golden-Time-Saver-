@@ -3,35 +3,39 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           https://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/mvc
+                           https://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <mvc:annotation-driven />
+
     <context:component-scan base-package="com.example.gts_project" />
 
-<!--    <mvc:resources mapping="/img/**" location="/resources/img/"/>-->
-<!--    <mvc:resources mapping="/css/**" location="/resources/css/"/>-->
-<!--    <mvc:resources mapping="/js/**" location="/resources/js/"/>-->
+    <mvc:resources mapping="/**" location="classpath:/static/" />
+    <mvc:resources mapping="/static/**" location="classpath:/static/static/" />
+    <mvc:resources mapping="/resources/**" location="/resources/" />
 
-    <bean id="loginCheckInterceptor"
-          class="com.example.gts_project.user.LoginCheckInterceptor"  />
+    <bean id="loginCheckInterceptor" class="com.example.gts_project.user.LoginCheckInterceptor" />
+
     <mvc:interceptors>
         <mvc:interceptor>
             <mvc:mapping path="/**"/>
-            <mvc:exclude-mapping path="/resources/**"/>
-            <mvc:exclude-mapping path="/img/**"/>
-            <!--
-            현재: /login/**만 제외되어 있어,
-            /auth/login으로 접속하면 loginCheckInterceptor가 작동하여
-            로그인 안 된 사용자를 튕겨내고 있을 가능성이 큽니다.
 
-            login폴더가 아니라 auth 폴더로 쓰고 있었기에 로그인 페이지에 인터셉터가 작동했던것!
-            -->
+            <mvc:exclude-mapping path="/resources/**"/>
+            <mvc:exclude-mapping path="/static/**"/>
+            <mvc:exclude-mapping path="/favicon.ico"/>
+            <mvc:exclude-mapping path="/manifest.json"/>
+
             <mvc:exclude-mapping path="/auth/**"/>
-            <mvc:exclude-mapping path="/"/> <!-- 첫 로딩할 때 검사 안하게 예외로 둘 것! -->
+            <mvc:exclude-mapping path="/api/auth/**"/>
+            <mvc:exclude-mapping path="/"/>
+
             <ref bean="loginCheckInterceptor" />
         </mvc:interceptor>
     </mvc:interceptors>
-
 
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" >
         <property name="prefix" value="/WEB-INF/views/" />
