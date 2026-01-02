@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace = "hospitalDAO">
+
+    <resultMap id="hospitalResultMap" type="com.example.gts_project.hospital.hospitalVO">
+        <id property="hospId" column="HospId"/>
+
+        <result property="hospName" column="HospName"/>
+        <result property="address" column="Address"/>
+        <result property="tel" column="Tel"/>
+        <result property="opHrs" column="OpHrs"/>
+        <result property="homePage" column="Homepage"/>
+        <result property="totalDoc" column="TotalDoc"/>
+        <result property="availabeDoc" column="AvailableDoc"/>
+        <result property="totalBeds" column="TotalBeds"/>
+        <result property="availableBeds" column="AvailableBeds"/>
+
+        <result property="userId" column="UserId"/>
+    </resultMap>
+
+    <insert id="insertHospital">
+        INSERT INTO gts.hospital (
+            HospName, Address, Tel, OpHrs, Homepage, TotalDoc, AvailableDoc, TotalBeds, AvailableBeds, UserId
+        ) VALUES (
+                     #{hospName},
+                     #{address},
+                     #{tel},
+                     #{opHrs},
+                     #{homePage},
+                     #{totalDoc},
+                     #{availabeDoc},
+                     #{totalBeds},
+                     #{availableBeds},
+                     #{userId}
+                 )
+    </insert>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <select id="getUserByUserName" parameterType="String" resultMap="userResultMap">
+        SELECT * FROM gts.user WHERE UserName = #{userName}
+    </select>
+
+    <select id="getUserListByUserType" parameterType="int" resultMap="userResultMap">
+        SELECT * FROM gts.user WHERE UserType = #{userType}
+    </select>
+
+    <select id="getUser" parameterType="int" resultMap="userResultMap">
+        SELECT * FROM gts.user WHERE PersonId = #{personId}
+    </select>
+
+    <select id="getUserList" resultMap="userResultMap">
+        SELECT * FROM gts.user
+    </select>
+
+    <update id="updateUser">
+        UPDATE gts.user
+        SET
+            UserName = #{userName},
+            Password = #{password},
+            UserType = #{userType},
+            PhoneNum = #{phoneNum},
+            WHERE PersonId = #{personId}
+    </update>
+
+    <delete id = "deleteUser">
+        DELETE FROM gts.user WHERE PersonId = #{personId}
+    </delete>
+
+    <select id="getUserCnt" resultType="int">
+        SELECT count(*) FROM gts.user
+    </select>
+
+</mapper>
