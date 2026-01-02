@@ -19,9 +19,9 @@
     </insert>
 
 
-<!--    <select id="getUserByUserName" parameterType="String" resultMap="userResultMap">-->
-<!--        SELECT * FROM gts.user WHERE UserName = #{userName}-->
-<!--    </select>-->
+    <select id="getUserByUserName" parameterType="String" resultMap="userResultMap">
+        SELECT * FROM gts.user WHERE UserName = #{userName}
+    </select>
 
     <select id="getUserListByUserType" parameterType="int" resultMap="userResultMap">
         SELECT * FROM gts.user WHERE UserType = #{userType}

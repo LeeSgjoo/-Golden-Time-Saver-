@@ -9,6 +9,7 @@ public interface userService {
     public int deleteUser(int personId);
 
     public userVO getUser(int personId);
+    public userVO getUserByUserName(String userName);
     public int getUserCnt();
     public List<userVO> getUserList();
     public List<userVO> getUserListByUserType(int userType);

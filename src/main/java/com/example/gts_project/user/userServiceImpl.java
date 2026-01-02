@@ -38,6 +38,10 @@ public class userServiceImpl implements userService {
         return userDAO.getUser(personId);
     }
     @Override
+    public userVO getUserByUserName(String userName){
+        return userDAO.getUserByUserName(userName);
+    }
+    @Override
     public int getUserCnt() {
         return userDAO.getUserCnt();
     }

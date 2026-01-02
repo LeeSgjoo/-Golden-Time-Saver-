@@ -27,7 +27,7 @@ public class userDAO {
     public userVO getUser(int personId) {
         return sqlSession.selectOne("userDAO.getUser", personId);
     }
-    //public List<userVO> getUserByUserName(String userName) {return sqlSession.selectList("userDAO.getUserByUserName", userName);}
+    public userVO getUserByUserName(String userName) {return sqlSession.selectOne("userDAO.getUserByUserName", userName);}
     public int getUserCnt(){
         return sqlSession.selectOne("userDAO.getUserCnt");
     }
