@@ -35,6 +35,4 @@ public interface patientService {
     public int getPatientCnt_m1(); // 거절 환자 수
     public int getPatientCnt_0();  // 대기 환자 수
     public int getPatientCnt_1();  // 수락 환자 수
-
-    public List<patientVO> getUserList(); // 유저 목록 조회 (매퍼 기준)
 }
