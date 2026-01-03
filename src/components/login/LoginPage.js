@@ -1,9 +1,14 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const [validated, setValidated] = useState(false);
   const [form, setForm] = useState({ userId: "", password: "" });
+
+  const navigate = useNavigate();
+
+  const classifications = 1; // 1: 병원, 2: 응급센터-> 이거 지워도 돼용 그냥 프론트 테스트용
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -26,6 +31,16 @@ export default function LoginPage() {
 
    
   };
+
+  const isLogin = () => {
+    alert('src/components/login/LoginPage.js 35번째 줄 근처 - 로그인 버튼은 126번줄 근처 여기에 있습니다. ')
+    if (classifications === 1) {
+      navigate("/hospital");
+    } else if (classifications === 2) {
+      navigate("/emerCenter");
+    }
+  }
+
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light px-3">
@@ -108,7 +123,7 @@ export default function LoginPage() {
                 type="submit"
                 className="btn btn-primary w-100 py-3 fw-bold rounded-3"
                 style={{ background: "#2f5bff", borderColor: "#2f5bff" }}
-                onClick={() => alert('src/components/login/LoginPage.js 111번째 줄 - 로그인 버튼 로직 여기에 있습니다. ')}
+                onClick={() => isLogin()}
               >
                 로그인
               </button>
