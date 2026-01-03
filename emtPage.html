@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Time Saver - EMT</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Optional Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body{
+      font-family:"Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    }
+    .brand-blue{color:#2f5bff;}
+    .brand-btn{background:#2f5bff!important;border-color:#2f5bff!important;}
+    .brand-btn:hover{background:#244cff!important;border-color:#244cff!important;}
+    .fw-black{font-weight:900;}
+    .mono{font-variant-numeric:tabular-nums;}
+    .hidden{display:none!important;}
+  </style>
+</head>
+
+<body class="bg-light">
+  <!-- Top Bar -->
+  <nav class="navbar bg-white border-bottom">
+    <div class="container py-1" style="max-width:980px;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-4 shadow-sm"
+             style="width:44px;height:44px;background:#2f5bff;" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M3 12h4l2-6 4 14 2-8h4" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="fw-black brand-blue" style="letter-spacing:-0.02em;">Golden Time Saver</div>
+          <div class="text-secondary small">응급구조사 대시보드</div>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-light border text-secondary" id="emtBadge">EMT #--</span>
+        <button class="btn btn-outline-secondary btn-sm" id="btnLogout">로그아웃</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4" style="max-width:980px;">
+    <!-- HOME -->
+    <section id="viewHome">
+      <div class="d-flex align-items-end justify-content-between mb-3">
+        <div>
+          <h1 class="fw-black mb-2">응급구조사 초기 페이지</h1>
+          <div class="text-secondary">내가 요청한 환자(요청상태=0) 확인 및 환자 등록</div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="fw-bold">내 요청 환자 리스트</div>
+                  <div class="text-secondary small">EMT_id = 내 ID & 요청상태=0</div>
+                </div>
+                <span class="badge text-bg-primary" id="badgeMyReq">--</span>
+              </div>
+
+              <div class="mt-3">
+                <button class="btn brand-btn text-white w-100 py-3 fw-bold rounded-3" id="goList">
+                  리스트 보기
+                </button>
+              </div>
+
+              <div class="text-secondary small mt-2">
+                * 요청상태=2가 되면 리스트에서 사라짐(백엔드 정책 반영)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="fw-bold">환자 등록</div>
+                  <div class="text-secondary small">KTAS/증상 입력 후 등록</div>
+                </div>
+                <span class="badge text-bg-success">폼</span>
+              </div>
+
+              <div class="mt-3">
+                <button class="btn btn-success w-100 py-3 fw-bold rounded-3" id="goForm">
+                  등록 폼 열기
+                </button>
+              </div>
+
+              <div class="text-secondary small mt-2">
+                등록 후 “내 요청 환자 리스트”로 이동
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIST -->
+    <section id="viewList" class="hidden">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h2 class="fw-black mb-1">내 요청 환자 리스트</h2>
+          <div class="text-secondary">EMT_id = <span id="emtIdText">--</span> & 요청상태=0</div>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary" id="backHomeFromList">초기페이지</button>
+          <button class="btn brand-btn text-white" id="goFormFromList">환자 등록</button>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex gap-2 flex-column flex-md-row">
+            <input class="form-control" id="searchInput" placeholder="검색: ID/증상/병원명" />
+            <div class="text-secondary small align-self-center">
+              <span id="listCount">0</span>명
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:90px;" class="ps-3">ID</th>
+                <th style="width:110px;">KTAS</th>
+                <th>증상</th>
+                <th style="width:160px;">요청 병원</th>
+                <th style="width:130px;" class="text-end pe-3">상세</th>
+              </tr>
+            </thead>
+            <tbody id="listTbody">
+              <tr>
+                <td colspan="5" class="text-center text-secondary py-5">
+                  데이터를 불러오는 중이거나, 아직 데이터가 없습니다.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORM -->
+    <section id="viewForm" class="hidden">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h2 class="fw-black mb-1">환자 등록 폼</h2>
+          <div class="text-secondary">KTAS / 증상 기록 입력</div>
+        </div>
+        <button class="btn btn-outline-secondary" id="backHomeFromForm">초기페이지</button>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-md-5">
+          <form id="registerForm" novalidate>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">KTAS</label>
+              <select class="form-select" id="ktasSelect" required>
+                <option value="1">1 (최우선)</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5 (경증)</option>
+              </select>
+              <div class="invalid-feedback">KTAS를 선택하세요.</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">증상 기록</label>
+              <textarea class="form-control" id="symptomsTextarea" rows="4" required minlength="3"
+                        placeholder="예) 흉통, 호흡곤란, 의식저하..."></textarea>
+              <div class="invalid-feedback">증상을 입력하세요 (3자 이상).</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn brand-btn text-white fw-bold px-4">등록</button>
+              <button type="button" class="btn btn-outline-secondary" id="btnCancelForm">취소</button>
+            </div>
+
+            <div class="text-secondary small mt-3">
+              * 백엔드 연결 시 등록 API 호출로 교체하면 됨.
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Detail Modal (Bootstrap) -->
+  <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="modalTitle">환자 상세</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-secondary small mb-1">환자 ID</div>
+                <div class="fs-5 fw-bold" id="mPid">--</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-secondary small mb-1">KTAS</div>
+                <div class="fs-5 fw-bold" id="mKtas">--</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-secondary small mb-1">증상 기록</div>
+                <div id="mSymptoms" style="white-space:pre-wrap;">--</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-secondary small mb-1">등록 EMT ID</div>
+                <div class="fw-bold" id="mEmt">--</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-secondary small mb-1">요청상태</div>
+                <div class="fw-bold" id="mStatus">--</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="text-secondary small mb-1">요청 병원</div>
+                <div class="fw-bold" id="mHosp">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (function(){
+      // =========================
+      // MOCK "로그인된 EMT"
+      // =========================
+      const EMT_PERSON_ID = 3;
+
+      // =========================
+      // MOCK DATA
+      // Cal_Status: -1(요청없음), 0(요청/이송중), 1(병원이송), 2(처리완료)
+      // =========================
+      let patients = [
+        { patientId: 101, emtId: 3, ktas: 2, symptoms: "흉통, 식은땀, 호흡곤란", calStatus: 0, calHospId: 2, hospName: "연세세브란스병원" },
+        { patientId: 102, emtId: 3, ktas: 3, symptoms: "교통사고, 팔 통증, 출혈", calStatus: 0, calHospId: null, hospName: null },
+        { patientId: 103, emtId: 3, ktas: 1, symptoms: "의식저하, 호흡 불규칙", calStatus: 1, calHospId: 1, hospName: "서울대학교병원" },
+        { patientId: 104, emtId: 99, ktas: 4, symptoms: "복통, 구토", calStatus: 0, calHospId: null, hospName: null },
+        { patientId: 105, emtId: 3, ktas: 4, symptoms: "어지러움, 구역감", calStatus: 2, calHospId: 5, hospName: "고려대학교병원" },
+      ];
+
+      // =========================
+      // DOM
+      // =========================
+      const emtBadge = document.getElementById("emtBadge");
+      const emtIdText = document.getElementById("emtIdText");
+
+      const viewHome = document.getElementById("viewHome");
+      const viewList = document.getElementById("viewList");
+      const viewForm = document.getElementById("viewForm");
+
+      const goList = document.getElementById("goList");
+      const goForm = document.getElementById("goForm");
+      const backHomeFromList = document.getElementById("backHomeFromList");
+      const goFormFromList = document.getElementById("goFormFromList");
+      const backHomeFromForm = document.getElementById("backHomeFromForm");
+      const btnCancelForm = document.getElementById("btnCancelForm");
+
+      const badgeMyReq = document.getElementById("badgeMyReq");
+      const searchInput = document.getElementById("searchInput");
+      const listCount = document.getElementById("listCount");
+      const listTbody = document.getElementById("listTbody");
+
+      const registerForm = document.getElementById("registerForm");
+      const ktasSelect = document.getElementById("ktasSelect");
+      const symptomsTextarea = document.getElementById("symptomsTextarea");
+
+      const btnLogout = document.getElementById("btnLogout");
+
+      // Modal
+      const modalEl = document.getElementById("detailModal");
+      const modal = new bootstrap.Modal(modalEl);
+
+      const modalTitle = document.getElementById("modalTitle");
+      const mPid = document.getElementById("mPid");
+      const mKtas = document.getElementById("mKtas");
+      const mSymptoms = document.getElementById("mSymptoms");
+      const mEmt = document.getElementById("mEmt");
+      const mStatus = document.getElementById("mStatus");
+      const mHosp = document.getElementById("mHosp");
+
+      // =========================
+      // Helpers
+      // =========================
+      const safeText = (v) => (v === null || v === undefined || v === "" ? "--" : String(v));
+
+      const statusBadgeHTML = (s) => {
+        if (s === -1) return `<span class="badge text-bg-secondary">요청없음</span>`;
+        if (s === 0)  return `<span class="badge text-bg-warning text-dark">요청/이송중</span>`;
+        if (s === 1)  return `<span class="badge text-bg-success">병원이송</span>`;
+        if (s === 2)  return `<span class="badge text-bg-dark">처리완료</span>`;
+        return `<span class="badge text-bg-light border text-dark">--</span>`;
+      };
+
+      const ktasBadgeHTML = (k) => {
+        const n = Number(k);
+        if (n === 1) return `<span class="badge text-bg-danger">KTAS 1</span>`;
+        if (n === 2) return `<span class="badge text-bg-danger bg-opacity-75">KTAS 2</span>`;
+        if (n === 3) return `<span class="badge text-bg-warning text-dark">KTAS 3</span>`;
+        if (n === 4) return `<span class="badge text-bg-info text-dark">KTAS 4</span>`;
+        return `<span class="badge text-bg-secondary">KTAS 5</span>`;
+      };
+
+      const showView = (name) => {
+        viewHome.classList.toggle("hidden", name !== "home");
+        viewList.classList.toggle("hidden", name !== "list");
+        viewForm.classList.toggle("hidden", name !== "form");
+      };
+
+      const getMyRequestedList = (query = "") => {
+        const q = query.trim().toLowerCase();
+        return patients
+          .filter(p => p.emtId === EMT_PERSON_ID && p.calStatus === 0)
+          .filter(p => {
+            if (!q) return true;
+            const hay = `${p.patientId} ${p.symptoms || ""} ${p.hospName || ""}`.toLowerCase();
+            return hay.includes(q);
+          })
+          .sort((a,b) => Number(a.ktas) - Number(b.ktas));
+      };
+
+      // =========================
+      // Render
+      // =========================
+      const renderHomeBadge = () => {
+        badgeMyReq.textContent = getMyRequestedList(searchInput.value).length;
+      };
+
+      const renderList = () => {
+        const list = getMyRequestedList(searchInput.value);
+        listCount.textContent = list.length;
+
+        if (list.length === 0) {
+          listTbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center text-secondary py-5">
+                요청상태=0인 내 환자가 없습니다.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        listTbody.innerHTML = list.map(p => `
+          <tr>
+            <td class="ps-3 fw-semibold">#${safeText(p.patientId)}</td>
+            <td>${ktasBadgeHTML(p.ktas)}</td>
+            <td class="text-secondary">${safeText(p.symptoms)}</td>
+            <td class="text-secondary">${p.hospName ? p.hospName : "미지정"}</td>
+            <td class="text-end pe-3">
+              <button class="btn btn-sm btn-outline-primary" data-action="detail" data-id="${p.patientId}">
+                보기
+              </button>
+            </td>
+          </tr>
+        `).join("");
+      };
+
+      const rerenderAll = () => {
+        emtBadge.textContent = `EMT #${EMT_PERSON_ID}`;
+        emtIdText.textContent = EMT_PERSON_ID;
+        renderHomeBadge();
+        renderList();
+      };
+
+      // =========================
+      // Modal
+      // =========================
+      const openDetailModal = (patientId) => {
+        const p = patients.find(x => x.patientId === Number(patientId));
+        if (!p) return;
+
+        modalTitle.textContent = `환자 상세 (ID: ${safeText(p.patientId)})`;
+        mPid.textContent = `#${safeText(p.patientId)}`;
+        mKtas.textContent = safeText(p.ktas);
+        mSymptoms.textContent = safeText(p.symptoms);
+        mEmt.textContent = safeText(p.emtId);
+        mStatus.innerHTML = statusBadgeHTML(p.calStatus);
+        mHosp.textContent = p.hospName ? `${p.hospName} (${safeText(p.calHospId)})` : "미지정";
+
+        modal.show();
+      };
+
+      // =========================
+      // Events
+      // =========================
+      goList.addEventListener("click", () => { showView("list"); });
+      goForm.addEventListener("click", () => { showView("form"); });
+
+      backHomeFromList.addEventListener("click", () => { showView("home"); });
+      goFormFromList.addEventListener("click", () => { showView("form"); });
+
+      backHomeFromForm.addEventListener("click", () => { showView("home"); });
+      btnCancelForm.addEventListener("click", () => { showView("home"); });
+
+      searchInput.addEventListener("input", () => {
+        renderHomeBadge();
+        renderList();
+      });
+
+      listTbody.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-action='detail']");
+        if (!btn) return;
+        openDetailModal(btn.dataset.id);
+      });
+
+      registerForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!registerForm.checkValidity()) {
+          registerForm.classList.add("was-validated");
+          return;
+        }
+
+        const ktas = Number(ktasSelect.value);
+        const symptoms = symptomsTextarea.value.trim();
+
+        // TODO(백엔드): 여기서 POST /api/patient 로 교체
+        // 지금은 mock로 추가
+        const newPatient = {
+          patientId: Date.now(),
+          emtId: EMT_PERSON_ID,
+          ktas,
+          symptoms,
+          calStatus: 0,      // 내 요청 리스트에 보이게
+          calHospId: null,
+          hospName: null
+        };
+
+        patients.unshift(newPatient);
+
+        // reset
+        registerForm.classList.remove("was-validated");
+        ktasSelect.value = "3";
+        symptomsTextarea.value = "";
+
+        rerenderAll();
+        showView("list");
+      });
+
+      btnLogout.addEventListener("click", () => {
+        alert("로그아웃");
+        // location.href = "login.html";
+      });
+
+      // =========================
+      // INIT
+      // =========================
+      rerenderAll();
+      showView("home");
+    })();
+  </script>
+</body>
+</html>
