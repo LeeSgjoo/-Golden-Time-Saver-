@@ -6,7 +6,7 @@ import java.util.List;
 public interface hospitalService {
 
     public int saveHospital(hospitalVO vo);
-    public hospitalVO getHospital(int patientId);
+    public hospitalVO getHospital(int hospitalId);
 
     public List<hospitalVO> getHospitalList();
 }
