@@ -10,6 +10,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/data")
+// @RestController 사용: 클래스 상단에 @Controller 대신 @RestController를 사용하면
+// 모든 메서드에 자동으로 @ResponseBody가 적용되어 JSON 데이터를 반환합니다.
 public class UserRestController {
 
     @Autowired
