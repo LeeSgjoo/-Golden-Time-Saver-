@@ -1,4 +1,15 @@
 // src/components/pages/EmtPage.jsx
+/*
+컨트롤러 체크리스트
+이 코드가 백엔드와 맞물려 돌아가려면 다음 컨트롤러 메서드들이 준비되어야 합니다.
+
+PatientRestController:
+GET /api/patients/emt/{emtId}: 해당 EMT가 등록한 환자 중 아직 완료되지 않은(calStatus < 2) 목록 반환.
+POST /api/patients/register: @RequestBody PatientVO를 받아 DB에 insert.
+CORS 설정: 모든 컨트롤러에 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true") 적용.
+
+JSON 바인딩: patientId, emtId, ktas, symptoms, calStatus 등의 필드명이 자바 VO와 리액트 JSON 키값 간에 대소문자까지 일치하는지 확인.
+ */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal, Button, Form, Badge } from "react-bootstrap";
