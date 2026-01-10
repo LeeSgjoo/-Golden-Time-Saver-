@@ -1,142 +1,105 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // 1단계: axios 도입
+
+// axios 기본 설정 (세션 쿠키 공유를 위해 필수)
+axios.defaults.withCredentials = true;
 
 export default function LoginPage() {
   const [validated, setValidated] = useState(false);
   const [form, setForm] = useState({ userId: "", password: "" });
+  const [errorMsg, setErrorMsg] = useState(""); // 에러 메시지 상태 추가
 
   const navigate = useNavigate();
-
-  const classifications = 1; // 1: 병원, 2: 응급센터-> 이거 지워도 돼용 그냥 프론트 테스트용
 
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => { // async 추가
     e.preventDefault();
-    e.stopPropagation();
-
-    const formEl = e.currentTarget;
-
-    // Bootstrap validation 패턴: 브라우저 constraint validation 활용
-    if (!formEl.checkValidity()) {
-      setValidated(true);
-      return;
-    }
-
     setValidated(true);
 
-   
+    const formEl = e.currentTarget;
+    if (!formEl.checkValidity()) return;
+
+    try {
+      // 2단계 & 3단계: 실제 백엔드 API 호출
+      // 백엔드의 UserVO 필드명이 nickname이라면 아래와 같이 매핑
+      const response = await axios.post("http://localhost:8080/api/auth/login_ok", {
+        userName: form.userId,
+        password: form.password
+      });
+
+      if (response.data.success) {
+        // 백엔드에서 넘겨준 사용자 정보에 따라 페이지 이동
+        const user = response.data.user;
+        if (user.userType === 1) { // 역할 구분은 백엔드 VO 설계를 따름
+          navigate("/hospital");
+        } else if(user.userType === 0){
+          navigate("/emerCenter");
+        }else if(user.userType === 2){
+          navigate("/emt")
+        }
+      }
+    } catch (error) {
+      // 4단계: 에러 처리
+      if (error.response && error.response.status === 401) {
+        setErrorMsg("아이디 또는 비밀번호가 일치하지 않습니다.");
+      } else {
+        setErrorMsg("서버 연결에 실패했습니다. 관리자에게 문의하세요.");
+      }
+    }
   };
 
-  const isLogin = () => {
-    alert('src/components/login/LoginPage.js 35번째 줄 근처 - 로그인 버튼은 126번줄 근처 여기에 있습니다. ')
-    if (classifications === 1) {
-      navigate("/hospital");
-    } else if (classifications === 2) {
-      navigate("/emerCenter");
-    }
-  }
-
-
   return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light px-3">
-      <div className="w-100" style={{ maxWidth: 900 }}>
-        {/* Brand */}
-        <div className="text-center mb-3">
-          <div
-            className="d-inline-flex align-items-center justify-content-center rounded-4 shadow-sm mb-3"
-            style={{ width: 72, height: 72, background: "#2f5bff" }}
-            aria-hidden="true"
-          >
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M3 12h4l2-6 4 14 2-8h4"
-                stroke="#fff"
-                strokeWidth="2.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light px-3">
+        <div className="w-100" style={{ maxWidth: 450 }}> {/* 가로폭 조정 */}
+          <div className="text-center mb-3">
+            {/* 로고 SVG 생략... */}
+            <h1 className="fw-bold mb-1" style={{ color: "#2f5bff" }}>Golden Time Saver</h1>
           </div>
 
-          <h1 className="fw-bold mb-1" style={{ color: "#2f5bff", letterSpacing: "-0.02em" }}>
-            Golden Time Saver
-          </h1>
-          <div className="text-secondary">응급 의료 통합 관리 시스템</div>
-        </div>
+          <div className="card border-0 shadow-sm">
+            <div className="card-body p-4 p-md-5">
+              <h2 className="fw-black mb-4" style={{ fontWeight: 900 }}>로그인</h2>
 
-        {/* Card */}
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-4 p-md-5">
-            <h2 className="fw-black mb-4" style={{ fontWeight: 900 }}>
-              로그인
-            </h2>
+              {/* 에러 메시지 표시 구역 */}
+              {errorMsg && <div className="alert alert-danger p-2 small">{errorMsg}</div>}
 
-            <form
-              noValidate
-              className={validated ? "was-validated" : ""}
-              onSubmit={onSubmit}
-            >
-              {/* 아이디 */}
-              <div className="mb-3">
-                <label htmlFor="userId" className="form-label fw-semibold ">
-                  ID
-                </label>
-                <input
-                  id="userId"
-                  name="userId"
-                  type="text"
-                  className="form-control rounded-3"
-                  placeholder="아이디를 입력하세요"
-                  value={form.userId}
-                  onChange={onChange}
-                  required
-                  minLength={2}
-                />
-                <div className="invalid-feedback">아이디를 입력하세요 (2자 이상).</div>
-              </div>
+              <form noValidate className={validated ? "was-validated" : ""} onSubmit={onSubmit}>
+                <div className="mb-3">
+                  <label htmlFor="userId" className="form-label fw-semibold">ID</label>
+                  <input
+                      id="userId" name="userName" type="text"
+                      className="form-control rounded-3"
+                      value={form.userId} onChange={onChange}
+                      required
+                  />
+                </div>
 
-              {/* 비밀번호 */}
-              <div className="mb-4">
-                <label htmlFor="password" className="form-label fw-semibold">
-                  password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  className="form-control rounded-3"
-                  placeholder="비밀번호를 입력하세요"
-                  value={form.password}
-                  onChange={onChange}
-                  required
-                  minLength={1}
-                />
-                <div className="invalid-feedback">비밀번호를 입력하세요 (1자 이상).</div>
-              </div>
+                <div className="mb-4">
+                  <label htmlFor="password" className="form-label fw-semibold">Password</label>
+                  <input
+                      id="password" name="password" type="password"
+                      className="form-control rounded-3"
+                      value={form.password} onChange={onChange}
+                      required
+                  />
+                </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary w-100 py-3 fw-bold rounded-3"
-                style={{ background: "#2f5bff", borderColor: "#2f5bff" }}
-                onClick={() => isLogin()}
-              >
-                로그인
-              </button>
-
-            </form>
+                <button
+                    type="submit"
+                    className="btn btn-primary w-100 py-3 fw-bold rounded-3"
+                    style={{ background: "#2f5bff", borderColor: "#2f5bff" }}
+                >
+                  로그인
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-
-        {/* 아래 여백 */}
-        <div className="text-center small text-secondary mt-3">
-          © Golden Time Saver
         </div>
       </div>
-    </div>
   );
 }
