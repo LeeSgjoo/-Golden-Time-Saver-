@@ -13,7 +13,12 @@ import java.util.List;
 public class PatientRestController {
 
     @Autowired
-    private patientServiceImpl patientService; // 가칭
+    private patientServiceImpl patientService;
+
+    @PostMapping("/patient/insert")
+    public int insertPatient(patientVO vo){
+        return patientService.insertPatient(vo);
+    }
 
     // --- 병원 계정 관련 로직 ---
     // 1. 요청 상태에 따른 리스팅, personId는 접속 중인 병원계정의 유저아이디

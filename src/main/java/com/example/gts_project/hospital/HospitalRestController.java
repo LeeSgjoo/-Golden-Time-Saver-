@@ -11,7 +11,12 @@ import java.util.List;
 public class HospitalRestController {
 
     @Autowired
-    private hospitalServiceImpl hospitalService; // 가칭
+    private hospitalServiceImpl hospitalService;
+
+    @PostMapping("hospital/save")
+    public int saveHospital(hospitalVO vo){
+        return hospitalService.saveHospital(vo);
+    }
 
     // 1. 병원 리스트 조회 (HTML의 rendering 로직 대체)
     @GetMapping("/hospitals")
