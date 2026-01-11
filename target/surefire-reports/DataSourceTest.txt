@@ -1,4 +1,10 @@
 -------------------------------------------------------------------------------
 Test set: DataSourceTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.702 s - in DataSourceTest
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.18 s <<< FAILURE! - in DataSourceTest
+testConnection  Time elapsed: 0.166 s  <<< ERROR!
+org.springframework.beans.factory.BeanDefinitionStoreException: IOException parsing XML document from file [/home/sg_joo_/gts_project/src/main/webapp/WEB-INF/applicationContext.xml]; nested exception is java.io.FileNotFoundException: src/main/webapp/WEB-INF/applicationContext.xml
+	at DataSourceTest.testConnection(DataSourceTest.java:12)
+Caused by: java.io.FileNotFoundException: src/main/webapp/WEB-INF/applicationContext.xml
+	at DataSourceTest.testConnection(DataSourceTest.java:12)
+
