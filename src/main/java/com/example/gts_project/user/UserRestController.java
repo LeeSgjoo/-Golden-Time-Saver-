@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -40,5 +41,13 @@ public class UserRestController {
     @GetMapping("users")
     public List<userVO> getUserList(){return userService.getUserList();}
 
-
+    @PostMapping("/user/login")
+    public ResponseEntity<?> login(@RequestParam String userName, @RequestParam String password, HttpSession session) {
+        userVO user = userService.getUserByUserName(userName);
+        if (user != null && user.getPassword().equals(password)) {
+            session.setAttribute("user", user); // 세션에 저장
+            return ResponseEntity.ok(user);    // 로그인 성공 시 유저 정보 반환
+        }
+        return ResponseEntity.status(401).body("로그인 실패");
+    }
 }
