@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace = "patientDAO">
+
+    <!--
+    resultMap (which is tag/element): 데이터베이스에서 가져온 결과(ResultSet)를 자바 객체(VO/DTO)에 어떻게 매핑할지 정의하는 설계도 역할
+
+    ===================================================================================================================
+
+    <select id="getUser" resultMap="userResultMap">
+    SELECT PersonId, UserName FROM user  > </select>
+    ===================================================================================================================
+
+    => 마이바티스가 resultMap 설계도를 보고, **"아, PersonId 컬럼 값은 자바의 personId 변수에 담아주면 되는구나!"**라고 알아서 배달해 줍니다.
+    -->
+    <resultMap id="patientResultMap" type="com.example.gts_project.patient.patientVO">
+        <id property="patientId" column="PatientId"/>
+        <result property="EMT_id" column="EMT_id"/>
+        <result property="KTAS" column="KTAS"/>
+        <result property="symptoms" column="Symtoms"/>
+        <result property="cal_status" column="Cal_status"/>
+        <result property="cal_hosp_id" column="Cal_hosp_id"/>
+    </resultMap>
+
+    <insert id = "insertPatient">
+        INSERT INTO gts.patient (
+            EMT_id, KTAS, Symtoms, Cal_status, Cal_hosp_id
+        ) VALUES (
+                     #{EMT_id}, #{KTAS}, #{symtoms}, #{cal_status}, #{cal_hosp_id}
+                 )
+    </insert>
+
+    <select id="getPatient" parameterType="String" resultMap="patientResultMap">
+        SELECT * FROM gts.patient WHERE PatientId = #{patientId}
+    </select>
+
+    <!--
+    <patient 테이블 객체>
+    === 병원 계정에서 ===
+    1-1. (요청 상태 == 0 && 요청 병원 아이디 == 현재 접속 중인 user(user type = 1인 병원계정)의 아이디)인 patient 리스트를 출력
+    1-2. (요청 상태 == 1 && 요청 병원 아이디 == 현재 접속 중인 user(user type = 1인 병원계정)의 아이디)인 patient 리스트를 출력
+    2-1. update 기능으로 수락 메서드/거절 메서드가 각각 필요.
+        => 수락 -> 1로 요청상태 업데이트, 거절 -> 요청 상태를 -1로 업데이트
+    2-2. 처리 버튼 눌렀을 때 update 해줄 메서드 필요
+        => 처리 -> 요청 상태가 2로 업데이트.
+    3. 환자 전체 수, 환자 요청 상태별 전체 수 반환메서드 필요
+
+    === 중앙 관리 센터 계정에서 ===
+    1-1. 요청 상태가 -1인 환자 리스트 Select
+    1-2. (요청 상태가 -1인 것들 중에 골랐을 때) hospital 테이블의 userId를 입력하면 Cal_hosp_id가 해당 병원에 맵핑된 병원 유저 아이디로 업데이트 된다.
+
+    === 응급 구조사 계정에서 ===
+    1. EMT_id가 user테이블의 personId와 일치하는 것 중에 요청 상태가 0인 환자 리스트
+    -->
+
+    <select id="getPatientListByPersonId_0" resultMap="patientResultMap">
+        SELECT * FROM gts.patient WHERE Cal_status = 0 and Cal_hosp_id = #{personId}
+    </select>
+    <select id="getPatientListByPersonId_1" resultMap="patientResultMap">
+        SELECT * FROM gts.patient WHERE Cal_status = 1 and Cal_hosp_id = #{personId}
+    </select>
+
+    <update id="updatePatientStatus_permit">
+        UPDATE gts.patient
+        SET Cal_status = 1
+            WHERE PatientId = #{patientId}
+    </update>
+    <update id="updatePatientStatus_reject">
+        UPDATE gts.patient
+        SET Cal_status = -1
+        WHERE PatientId = #{patientId}
+    </update>
+    <update id="updatePatientStatus_process">
+        UPDATE gts.patient
+        SET Cal_status = -1
+        WHERE PatientId = #{patientId}
+    </update>
+
+    <select id="getPatientList_m1" resultMap="patientResultMap">
+        SELECT * FROM gts.patient WHERE Cal_status = -1
+    </select>
+
+
+    <select id="getPatientListBy" parameterType="int" resultMap="userResultMap">
+        SELECT * FROM gts.user WHERE UserType = #{userType}
+    </select>
+
+    <select id="getUserList" resultMap="userResultMap">
+        SELECT * FROM gts.user
+    </select>
+    <update id="updatePatientStatus_call">
+        UPDATE gts.patient
+        SET Cal_status = 0 AND Cal_hosp_id = #{personId}
+        WHERE PatientId = #{patientId}
+    </update>
+
+
+
+<!--    <delete id = "deleteUser">-->
+<!--        DELETE FROM gts.user WHERE PersonId = #{personId}-->
+<!--    </delete>-->
+
+    <select id="getTotalPatientCnt" resultType="int" resultMap="patientResultMap">
+        SELECT count(*) FROM gts.patient
+    </select>
+    <select id="getPatientCnt_m1" resultType="int" resultMap="patientResultMap">
+        SELECT count(*) FROM gts.patient WHERE Cal_status = -1
+    </select>
+    <select id="getPatientCnt_0" resultType="int" resultMap="patientResultMap">
+        SELECT count(*) FROM gts.patient WHERE Cal_status = 0
+    </select>
+    <select id="getPatientCnt_1" resultType="int" resultMap="patientResultMap">
+        SELECT count(*) FROM gts.patient WHERE Cal_status = 1
+    </select>
+
+
+
+
+
+    <select id="getPatientListByEMT_0" resultMap="patientResultMap">
+        SELECT * FROM gts.patient WHERE EMT_id = #{personId} and Cal_status = 0
+    </select>
+
+</mapper>
