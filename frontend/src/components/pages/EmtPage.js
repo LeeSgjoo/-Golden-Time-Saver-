@@ -1,160 +1,136 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Form, Button, Modal, Table, Badge } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 axios.defaults.withCredentials = true;
 const API_BASE = "http://localhost:8080/api/data";
 
 export default function EmtPage() {
-  const [emtId, setEmtId] = useState(3); // 테스트용 ID
-  const [patients, setPatients] = useState([]);
+  const [view, setView] = useState("list"); // 'list' or 'register'
+  const [myRequestedList, setMyRequestedList] = useState([]);
   const [form, setForm] = useState({ KTAS: "3", symptoms: "" });
+  const [validated, setValidated] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [selected, setSelected] = useState(null);
+
+  const emtId = 3; // 실제 환경에선 세션에서 가져옴
+  const navigate = useNavigate();
+
+  const fetchMyList = async () => {
+    try {
+      // patientVO의 EMT_id 필드명에 맞춰 조회
+      const res = await axios.get(`${API_BASE}/patients/PID_m1`);
+      const myData = res.data.filter(p => p.EMT_id === emtId);
+      setMyRequestedList(myData);
+    } catch (e) { console.error(e); }
+  };
+
+  useEffect(() => { fetchMyList(); }, []);
+
+  const onLogout = () => { if(window.confirm("로그아웃?")) navigate("/"); };
+  const openDetail = (p) => { setSelected(p); setShowDetail(true); };
+  const closeDetail = () => { setShowDetail(false); setSelected(null); };
 
   const onSubmitRegister = async (e) => {
     e.preventDefault();
+    if (e.currentTarget.checkValidity() === false) {
+      e.stopPropagation();
+      setValidated(true);
+      return;
+    }
+
     try {
-      // 수정된 부분: API 호출 방식 불일치 해결 (URLSearchParams 사용)
       const params = new URLSearchParams();
       params.append('EMT_id', emtId);
-      params.append('KTAS', Number(form.KTAS));
+      params.append('KTAS', form.KTAS);
       params.append('symptoms', form.symptoms);
-      params.append('cal_status', -1); // 초기 등록 상태
+      params.append('cal_status', -1);
 
-      const response = await axios.post(`${API_BASE}/patient/insert`, params);
+      await axios.post(`${API_BASE}/patient/insert`, params);
+      alert("등록 성공");
+      setForm({ KTAS: "3", symptoms: "" });
+      setValidated(false);
+      setView("list");
+      fetchMyList();
+    } catch (error) { alert("등록 실패"); }
+  };
 
-      if (response.data > 0) {
-        alert("환자 등록 성공");
-        // 리스트 갱신 로직 등
-      }
-    } catch (error) {
-      alert("등록 실패");
-    }
+  const ktasBadge = (level) => <Badge bg="danger">Level {level}</Badge>;
+  const statusBadge = (s) => {
+    if (s === -1) return <Badge bg="secondary">대기중</Badge>;
+    if (s === 0) return <Badge bg="warning">이송중</Badge>;
+    return <Badge bg="success">수용완료</Badge>;
   };
 
   return (
-      <div className="bg-light min-vh-100">
-        {/* Top Bar */}
-        <nav className="navbar bg-white border-bottom">
-          <div className="container py-1" style={{ maxWidth: 980 }}>
-            <div className="d-flex align-items-center gap-3">
-              <div className="d-inline-flex align-items-center justify-content-center rounded-4 shadow-sm" style={{ width: 44, height: 44, background: "#2f5bff" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 12h4l2-6 4 14 2-8h4" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+      <div className="container py-4">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2>응급구조사 대시보드</h2>
+          <Button variant="outline-danger" onClick={onLogout}>로그아웃</Button>
+        </div>
+
+        {view === "list" ? (
+            <>
+              <div className="d-flex justify-content-between mb-3">
+                <h4>내 요청 목록 ({myRequestedList.length}건)</h4>
+                <Button onClick={() => setView("register")}>새 환자 등록</Button>
               </div>
-              <div>
-                <div className="fw-black" style={{ fontWeight: 900, color: "#2f5bff", letterSpacing: "-0.02em" }}>Golden Time Saver</div>
-                <div className="text-secondary small">응급구조사 대시보드</div>
-              </div>
+              <Table striped bordered hover>
+                <thead>
+                <tr><th>ID</th><th>KTAS</th><th>상태</th><th>상세</th></tr>
+                </thead>
+                <tbody>
+                {myRequestedList.map(p => (
+                    <tr key={p.patientId}>
+                      <td>{p.patientId}</td>
+                      <td>{ktasBadge(p.KTAS)}</td>
+                      <td>{statusBadge(p.cal_status)}</td>
+                      <td><Button size="sm" onClick={() => openDetail(p)}>보기</Button></td>
+                    </tr>
+                ))}
+                </tbody>
+              </Table>
+            </>
+        ) : (
+            <div className="card p-4">
+              <h4>새 환자 등록</h4>
+              <Form noValidate validated={validated} onSubmit={onSubmitRegister}>
+                <Form.Group className="mb-3">
+                  <Form.Label>중증도 (KTAS)</Form.Label>
+                  <Form.Select value={form.KTAS} onChange={e => setForm({...form, KTAS: e.target.value})}>
+                    <option value="1">1단계 (즉각처치)</option>
+                    <option value="2">2단계 (매우긴급)</option>
+                    <option value="3">3단계 (긴급)</option>
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>주요 증상</Form.Label>
+                  <Form.Control required as="textarea" rows={3} value={form.symptoms}
+                                onChange={e => setForm({...form, symptoms: e.target.value})} />
+                </Form.Group>
+                <div className="d-flex gap-2">
+                  <Button type="submit">등록하기</Button>
+                  <Button variant="secondary" onClick={() => setView("list")}>취소</Button>
+                </div>
+              </Form>
             </div>
-            <div className="d-flex align-items-center gap-2">
-              <span className="badge text-bg-light border text-secondary">EMT #{emtId}</span>
-              <button className="btn btn-outline-secondary btn-sm" onClick={onLogout}>로그아웃</button>
-            </div>
-          </div>
-        </nav>
+        )}
 
-        <main className="container py-4" style={{ maxWidth: 980 }}>
-          {/* HOME VIEW */}
-          {view === "home" && (
-              <section>
-                <h1 className="fw-black mb-4" style={{ fontWeight: 900 }}>응급구조사 초기 페이지</h1>
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <div className="card border-0 shadow-sm p-4 h-100">
-                      <div className="fw-bold mb-2">내 요청 환자 리스트</div>
-                      <div className="fs-2 fw-bold text-primary mb-3">{myRequestedList.length}건</div>
-                      <button className="btn btn-primary py-3 fw-bold" style={{ background: "#2f5bff" }} onClick={() => setView("list")}>리스트 보기</button>
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="card border-0 shadow-sm p-4 h-100">
-                      <div className="fw-bold mb-2">신규 환자 등록</div>
-                      <div className="text-secondary small mb-4">현장 환자 정보를 시스템에 등록</div>
-                      <button className="btn btn-success py-3 fw-bold" onClick={() => setView("form")}>등록 폼 열기</button>
-                    </div>
-                  </div>
-                </div>
-              </section>
-          )}
-
-          {/* LIST VIEW */}
-          {view === "list" && (
-              <section>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h2 className="fw-bold">요청 환자 리스트</h2>
-                  <button className="btn btn-outline-secondary" onClick={() => setView("home")}>뒤로가기</button>
-                </div>
-                <div className="card border-0 shadow-sm">
-                  <div className="table-responsive">
-                    <table className="table table-hover mb-0 align-middle">
-                      <thead className="table-light">
-                      <tr>
-                        <th className="ps-3">ID</th>
-                        <th>KTAS</th>
-                        <th>증상</th>
-                        <th>상태</th>
-                        <th className="text-end pe-3">상세</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      {myRequestedList.map((p) => (
-                          <tr key={p.patientId}>
-                            <td className="ps-3 fw-bold">#{p.patientId}</td>
-                            <td>{ktasBadge(p.KTAS)}</td>
-                            <td className="text-truncate" style={{ maxWidth: '200px' }}>{p.symptoms}</td>
-                            <td>{statusBadge(p.cal_status)}</td>
-                            <td className="text-end pe-3">
-                              <button className="btn btn-sm btn-outline-primary" onClick={() => openDetail(p)}>보기</button>
-                            </td>
-                          </tr>
-                      ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </section>
-          )}
-
-          {/* FORM VIEW */}
-          {view === "form" && (
-              <section>
-                <h2 className="fw-bold mb-3">환자 등록</h2>
-                <div className="card border-0 shadow-sm p-4">
-                  <Form noValidate validated={validated} onSubmit={onSubmitRegister}>
-                    <Form.Group className="mb-3">
-                      <Form.Label className="fw-bold">중증도 (KTAS)</Form.Label>
-                      <Form.Select value={form.KTAS} onChange={(e) => setForm({...form, KTAS: e.target.value})}>
-                        {[1,2,3,4,5].map(v => <option key={v} value={v}>Level {v}</option>)}
-                      </Form.Select>
-                    </Form.Group>
-                    <Form.Group className="mb-4">
-                      <Form.Label className="fw-bold">증상 기록</Form.Label>
-                      <Form.Control as="textarea" rows={4} required minLength={3} value={form.symptoms} onChange={(e) => setForm({...form, symptoms: e.target.value})} />
-                    </Form.Group>
-                    <div className="d-flex gap-2">
-                      <Button type="submit" className="px-5 fw-bold" style={{ background: "#2f5bff" }}>등록</Button>
-                      <Button variant="outline-secondary" onClick={() => setView("home")}>취로</Button>
-                    </div>
-                  </Form>
-                </div>
-              </section>
-          )}
-        </main>
-
-        {/* Detail Modal */}
-        <Modal show={showDetail} onHide={closeDetail} centered size="lg">
-          <Modal.Header closeButton><Modal.Title className="fw-bold">환자 상세 정보</Modal.Title></Modal.Header>
+        <Modal show={showDetail} onHide={closeDetail}>
+          <Modal.Header closeButton><Modal.Title>환자 상세 정보</Modal.Title></Modal.Header>
           <Modal.Body>
             {selected && (
-                <div className="row g-3">
-                  <div className="col-md-6"><div className="p-3 bg-light rounded border"><small>환자 ID</small><div className="fw-bold">#{selected.patientId}</div></div></div>
-                  <div className="col-md-6"><div className="p-3 bg-light rounded border"><small>KTAS</small><div>{ktasBadge(selected.KTAS)}</div></div></div>
-                  <div className="col-12"><div className="p-3 bg-light rounded border"><small>증상</small><p className="mb-0">{selected.symptoms}</p></div></div>
-                  <div className="col-md-6"><div className="p-3 bg-light rounded border"><small>상태</small><div>{statusBadge(selected.cal_status)}</div></div></div>
-                  <div className="col-md-6"><div className="p-3 bg-light rounded border"><small>배정 병원 ID</small><div>{selected.cal_hosp_id || "미정"}</div></div></div>
+                <div>
+                  <p><strong>환자 번호:</strong> {selected.patientId}</p>
+                  <p><strong>중증도:</strong> {ktasBadge(selected.KTAS)}</p>
+                  <p><strong>증상:</strong> {selected.symptoms}</p>
+                  <p><strong>현재 상태:</strong> {statusBadge(selected.cal_status)}</p>
+                  <p><strong>배정 병원 ID:</strong> {selected.cal_hosp_id || "미배정"}</p>
                 </div>
             )}
           </Modal.Body>
+          <Modal.Footer><Button onClick={closeDetail}>닫기</Button></Modal.Footer>
         </Modal>
       </div>
   );

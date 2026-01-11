@@ -1,13 +1,16 @@
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/user/userService.java
+/home/sg_joo_/gts_project/src/main/java/com/example/gts_project/config/WebController.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/user/userDAO.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/hospital/HospitalRestController.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/user/userVO.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/hospital/hospitalVO.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/hospital/hospitalServiceImpl.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/hospital/hospitalDAO.java
+/home/sg_joo_/gts_project/src/main/java/com/example/gts_project/config/WebConfig.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/patient/patientDAO.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/patient/patientService.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/HelloServlet.java
+/home/sg_joo_/gts_project/src/main/java/com/example/gts_project/GtsProjectApplication.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/patient/patientVO.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/user/LoginController.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/hospital/hospitalService.java
