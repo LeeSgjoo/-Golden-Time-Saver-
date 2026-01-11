@@ -8,7 +8,6 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 @SpringBootApplication
 public class GtsProjectApplication extends SpringBootServletInitializer {
 
-    // WAR 배포와 java -jar 실행을 모두 지원하기 위한 설정
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(GtsProjectApplication.class);
