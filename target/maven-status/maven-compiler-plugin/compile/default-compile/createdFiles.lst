@@ -1,6 +1,5 @@
 com/example/gts_project/user/userServiceImpl.class
 com/example/gts_project/user/userDAO.class
-com/example/gts_project/HelloServlet.class
 com/example/gts_project/user/LoginCheckInterceptor.class
 com/example/gts_project/config/WebConfig.class
 com/example/gts_project/hospital/hospitalService.class
@@ -9,7 +8,7 @@ com/example/gts_project/user/UserRestController.class
 com/example/gts_project/hospital/hospitalDAO.class
 com/example/gts_project/patient/patientServiceImpl.class
 com/example/gts_project/user/userVO.class
-com/example/gts_project/common/WebController.class
+com/example/gts_project/config/WebController.class
 com/example/gts_project/user/userService.class
 com/example/gts_project/hospital/hospitalServiceImpl.class
 com/example/gts_project/patient/patientVO.class

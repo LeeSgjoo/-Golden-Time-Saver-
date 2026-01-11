@@ -5,16 +5,11 @@
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true"/>
     </settings>
+
     <typeAliases>
         <typeAlias alias="user" type="com.example.gts_project.user.userVO" />
         <typeAlias alias="hospital" type="com.example.gts_project.hospital.hospitalVO" />
         <typeAlias alias="patient" type="com.example.gts_project.patient.patientVO" />
     </typeAliases>
-    <!-- applicationContext.xml에서 이미 경로를 지정해주고 있으므로, mybatis-config.xml 내의 <mappers> 태그 전체를 삭제 -->
-<!--    <mappers>-->
-<!--        <mapper resource = "mappers/patient-mapper.xml"/>-->
-<!--        <mapper resource = "mappers/hospital-mapper.xml"/>-->
-<!--        <mapper resource = "mappers/user-mapper.xml" />-->
 
-<!--    </mappers>-->
 </configuration>

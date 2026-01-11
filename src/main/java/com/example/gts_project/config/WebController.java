@@ -1,4 +1,4 @@
-package com.example.gts_project.common;
+package com.example.gts_project.config;
 
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
@@ -11,7 +11,7 @@ public class WebController implements ErrorController {
     // 또는 아래와 같이 경로를 명시합니다.
     @GetMapping({"/", "/login", "/emt", "/hospital", "/center"})
     public String index() {
-        return "index"; // application.properties의 suffix(.html)와 결합됩니다.
+        return "index";
     }
 
     @GetMapping("/error")

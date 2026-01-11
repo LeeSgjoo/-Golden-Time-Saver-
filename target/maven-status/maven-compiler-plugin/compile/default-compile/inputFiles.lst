@@ -9,7 +9,6 @@
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/config/WebConfig.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/patient/patientDAO.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/patient/patientService.java
-/home/sg_joo_/gts_project/src/main/java/com/example/gts_project/HelloServlet.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/GtsProjectApplication.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/patient/patientVO.java
 /home/sg_joo_/gts_project/src/main/java/com/example/gts_project/user/LoginController.java
