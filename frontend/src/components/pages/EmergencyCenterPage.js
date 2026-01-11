@@ -7,20 +7,25 @@ axios.defaults.withCredentials = true;
 const API_BASE = "http://localhost:8080/api/data";
 
 export default function EmergencyCenterPage() {
-  // ====== 데이터 상태 관리 ======
-  const [hospitals, setHospitals] = useState([]); // hospital 정보 기반
-  const [waitingPatients, setWaitingPatients] = useState([]); // patientVO 기반
+  const [hospitals, setHospitals] = useState([]);
+  const [waitingPatients, setWaitingPatients] = useState([]);
   const [recentMatches, setRecentMatches] = useState([]);
 
-  // 통계 데이터
   const [totalPatients, setTotalPatients] = useState(0);
   const [transporting, setTransporting] = useState(0);
   const [completed, setCompleted] = useState(0);
 
-  // ====== 1. 서버에서 데이터 가져오는 함수 ======
+  const [hospitalQuery, setHospitalQuery] = useState("");
+  const [patientQuery, setPatientQuery] = useState("");
+  const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const [hospitalIdInput, setHospitalIdInput] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalInfo, setModalInfo] = useState({ patient: "-", hospital: "-", time: "-" });
+
+  const navigate = useNavigate();
+
   const fetchData = async () => {
     try {
-      // 병원 유저 목록, 대기 환자 목록, 통계 카운트를 동시에 호출
       const [hospUsersRes, patientRes, totalCnt, m1Cnt, p1Cnt] = await Promise.all([
         axios.get(`${API_BASE}/users/userType?userType=1`),
         axios.get(`${API_BASE}/patients/PID_m1`),
@@ -29,19 +34,16 @@ export default function EmergencyCenterPage() {
         axios.get(`${API_BASE}/patients/cnt/1`)
       ]);
 
-      // [주의] 현재 컨트롤러에는 hospitalVO 전체를 가져오는 API가 UserType 기반 리스트만 있으므로
-      // userVO의 데이터를 UI에 맞게 매핑합니다. (추후 Hospital 전용 API 연결 권장)
       const mappedHospitals = hospUsersRes.data.map((user) => ({
-        id: user.personId, // 매칭 시 전달할 ID
+        id: user.personId,
         name: user.userName,
-        location: "지정된 주소 없음", // userVO에는 address가 없으므로 고정값 처리
-        beds: 0, // hospitalVO와 연동 전이므로 기본값
+        location: "정보 없음",
+        beds: 0,
         doctors: 0
       }));
 
       setHospitals(mappedHospitals);
       setWaitingPatients(patientRes.data);
-
       setTotalPatients(totalCnt.data);
       setTransporting(m1Cnt.data);
       setCompleted(p1Cnt.data);
@@ -54,99 +56,36 @@ export default function EmergencyCenterPage() {
     fetchData();
   }, []);
 
-  // ====== UI STATE ======
-  const [hospitalQuery, setHospitalQuery] = useState("");
-  const [patientQuery, setPatientQuery] = useState("");
-  const [selectedPatientId, setSelectedPatientId] = useState(null);
-  const [hospitalIdInput, setHospitalIdInput] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalInfo, setModalInfo] = useState({ patient: "-", hospital: "-", time: "-" });
-
-  const navigate = useNavigate();
-
-  // ====== 필터링 로직 (VO 필드명 반영) ======
-  const filteredHospitals = useMemo(() => {
-    const q = hospitalQuery.trim().toLowerCase();
-    return hospitals.filter((h) => h.name.toLowerCase().includes(q));
-  }, [hospitals, hospitalQuery]);
-
-  const filteredPatients = useMemo(() => {
-    const q = patientQuery.trim().toLowerCase();
-    // patientVO의 symptoms 필드를 기준으로 검색
-    return waitingPatients.filter((p) =>
-        p.symptoms && p.symptoms.toLowerCase().includes(q)
-    );
-  }, [waitingPatients, patientQuery]);
-
-  const selectedPatient = useMemo(
-      () => waitingPatients.find((p) => p.patientId === selectedPatientId) || null,
-      [waitingPatients, selectedPatientId]
-  );
-
-  const selectedHospital = useMemo(() => {
-    const id = parseInt(hospitalIdInput.trim());
-    return hospitals.find((h) => h.id === id) || null;
-  }, [hospitalIdInput, hospitals]);
-
-  const hospitalHint = useMemo(() => {
-    if (!hospitalIdInput.trim()) return { text: "", cls: "" };
-    if (selectedHospital) return { text: `✓ ${selectedHospital.name}`, cls: "valid" };
-    return { text: "✗ 존재하지 않는 병원 ID입니다", cls: "invalid" };
-  }, [hospitalIdInput, selectedHospital]);
-
-  const canMatch = Boolean(selectedPatient && selectedHospital);
-
-  const getHospitalStatus = (beds) => (beds >= 3 ? "available" : beds >= 1 ? "busy" : "full");
-  const nowHHMM = () => new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-  const resetSelection = () => { setSelectedPatientId(null); setHospitalIdInput(""); };
-
-  // ====== 2. 매칭 실행 (PatientRestController 연동) ======
   const executeMatch = async () => {
-    if (!canMatch) return;
+    const selectedPatient = waitingPatients.find(p => p.patientId === selectedPatientId);
+    const selectedHospital = hospitals.find(h => h.id === parseInt(hospitalIdInput));
+
+    if (!selectedPatient || !selectedHospital) return;
 
     try {
-      // 컨트롤러: public void patinetCall(int patientId, int personId)
-      // Query Parameter 방식으로 전송
-      const response = await axios.post(`${API_BASE}/patient/update/call`, null, {
-        params: {
-          patientId: selectedPatient.patientId,
-          personId: selectedHospital.id
-        }
-      });
+      // 수정된 부분: API 호출 방식 불일치 해결 (URLSearchParams 사용)
+      const params = new URLSearchParams();
+      params.append('patientId', selectedPatient.patientId);
+      params.append('personId', selectedHospital.id);
+
+      const response = await axios.post(`${API_BASE}/patient/update/call`, params);
 
       if (response.status === 200) {
-        const time = nowHHMM();
+        const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
         setModalInfo({
-          patient: `환자 #${selectedPatient.patientId} (KTAS ${selectedPatient.ktas})`,
+          patient: `환자 #${selectedPatient.patientId}`,
           hospital: selectedHospital.name,
           time,
         });
         setModalOpen(true);
-
-        // 최근 매칭 내역 업데이트
-        setRecentMatches(prev => [{
-          patient: `환자 #${selectedPatient.patientId}`,
-          hospital: selectedHospital.name,
-          time
-        }, ...prev].slice(0, 5));
-
-        fetchData(); // 상태 변경 후 목록 새로고침
-        resetSelection();
+        fetchData();
+        setSelectedPatientId(null);
+        setHospitalIdInput("");
       }
     } catch (error) {
-      alert("매칭 요청에 실패했습니다.");
+      alert("매칭 요청 중 오류가 발생했습니다.");
     }
   };
-
-  const closeModal = () => setModalOpen(false);
-
-  const logout = async () => {
-    if (window.confirm("로그아웃 하시겠습니까?")) {
-      navigate("/");
-    }
-  };
-
-  const selectHospitalByClick = (id) => setHospitalIdInput(id.toString());
 
   return (
       <div>

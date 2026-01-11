@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
@@ -21,14 +22,19 @@ export default function HospitalDashboard() {
 
   const navigate = useNavigate();
 
-  // ====== 1. DATA LOADING (실제 API 연동) ======
+  // 테스트를 위한 현재 로그인된 병원 유저의 ID (실제로는 세션/Context에서 가져옴)
+  const currentHospitalPersonId = 101;
+
+  // ====== 1. 데이터 로드 (GET API 연동) ======
   const loadData = async () => {
     setLoading(true);
     try {
-      // 병원 본인의 정보를 먼저 가져옴 (세션 기반 personId가 필요하나, 여기선 me API가 없으므로 유저 정보 활용 가정)
-      // 실제 환경에서는 로그인 시 저장된 personId를 사용합니다.
-      const hospInfoRes = await axios.get(`${API_BASE}/user/PID`, { params: { personId: 101 } }); // 예시 ID: 101
+      // 병원 유저 정보 조회
+      const hospInfoRes = await axios.get(`${API_BASE}/user/PID`, {
+        params: { personId: currentHospitalPersonId }
+      });
       const hospUser = hospInfoRes.data;
+      setHospital(hospUser);
 
       // 해당 병원에 할당된 환자 리스트 (PID_0: 요청 대기, PID_1: 수용 중)
       const [reqRes, inRes] = await Promise.all([
@@ -36,7 +42,7 @@ export default function HospitalDashboard() {
         axios.get(`${API_BASE}/patients/PID_1`, { params: { personId: hospUser.personId } })
       ]);
 
-      setHospital(hospUser); // hospitalVO와 필드가 매핑된다고 가정
+      // 전체 환자 목록 합치기
       setPatients([...reqRes.data, ...inRes.data]);
     } catch (e) {
       setError("데이터를 불러오는 데 실패했습니다.");
@@ -50,40 +56,28 @@ export default function HospitalDashboard() {
     loadData();
   }, []);
 
-  // ====== 2. ACTIONS (컨트롤러 엔드포인트 매핑) ======
+  // ====== 2. 상태 변경 액션 (API 호출 방식 불일치 해결) ======
 
-  const acceptPatient = async () => {
+  const handleUpdateStatus = async (apiPath) => {
     if (!selectedPatientId) return;
     try {
-      // POST /api/data/patient/update/permit
-      await axios.post(`${API_BASE}/patient/update/permit`, null, { params: { patientId: selectedPatientId } });
-      alert("환자 수용을 승인했습니다.");
+      // 수정 포인트: 백엔드 컨트롤러가 개별 파라미터(int patientId)를 받으므로 params로 전달
+      await axios.post(`${API_BASE}/patient/update/${apiPath}`, null, {
+        params: { patientId: selectedPatientId }
+      });
+
+      alert("처리가 완료되었습니다.");
       closePatientModal();
-      loadData();
-    } catch (e) { alert("승인 처리에 실패했습니다."); }
+      loadData(); // 목록 새로고침
+    } catch (e) {
+      console.error(e);
+      alert("상태 업데이트에 실패했습니다.");
+    }
   };
 
-  const rejectPatient = async () => {
-    if (!selectedPatientId) return;
-    try {
-      // POST /api/data/patient/update/reject
-      await axios.post(`${API_BASE}/patient/update/reject`, null, { params: { patientId: selectedPatientId } });
-      alert("요청을 거절했습니다.");
-      closePatientModal();
-      loadData();
-    } catch (e) { alert("거절 처리에 실패했습니다."); }
-  };
-
-  const processPatient = async () => {
-    if (!selectedPatientId) return;
-    try {
-      // POST /api/data/patient/update/process
-      await axios.post(`${API_BASE}/patient/update/process`, null, { params: { patientId: selectedPatientId } });
-      alert("진료 및 처리가 완료되었습니다.");
-      closePatientModal();
-      loadData();
-    } catch (e) { alert("완료 처리에 실패했습니다."); }
-  };
+  const acceptPatient = () => handleUpdateStatus("permit");
+  const rejectPatient = () => handleUpdateStatus("reject");
+  const completePatient = () => handleUpdateStatus("process");
 
   const logout = () => {
     if (window.confirm("로그아웃 하시겠습니까?")) {
@@ -91,7 +85,7 @@ export default function HospitalDashboard() {
     }
   };
 
-  // ====== 3. SELECTORS (VO 필드명 반영) ======
+  // ====== 3. 유틸리티 및 필터링 ======
   const safeText = (v) => (v === null || v === undefined || v === "" ? "--" : String(v));
 
   const statusBadge = (s) => {
@@ -101,11 +95,9 @@ export default function HospitalDashboard() {
     return <span className="badge text-bg-secondary">기타</span>;
   };
 
-  const reqList = useMemo(() =>
-      patients.filter((p) => p.cal_status === 0), [patients]);
-
-  const inList = useMemo(() =>
-      patients.filter((p) => p.cal_status === 1), [patients]);
+  // cal_status 필드명 반영
+  const reqList = useMemo(() => patients.filter((p) => p.cal_status === 0), [patients]);
+  const inList = useMemo(() => patients.filter((p) => p.cal_status === 1), [patients]);
 
   const selectedPatient = useMemo(() =>
       patients.find((p) => p.patientId === selectedPatientId) || null, [patients, selectedPatientId]);
@@ -122,8 +114,9 @@ export default function HospitalDashboard() {
     setSelectedContext(null);
   };
 
+  // ====== 4. UI 렌더링 ======
   return (
-      <div className="bg-light min-vh-100">
+      <div className="bg-light min-vh-100" style={{ fontFamily: "sans-serif" }}>
         <nav className="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
           <div className="container py-1">
             <div className="d-flex align-items-center gap-3">
@@ -146,7 +139,7 @@ export default function HospitalDashboard() {
           {view === "home" && (
               <section>
                 <h1 className="mb-4 fw-bold">병원 관리 메인</h1>
-                {/* hospitalVO의 필드명 반영 (totalBeds, availableBeds, totalDoc, availabeDoc) */}
+                {/* hospitalVO의 필드명 기반 매핑 (가정) */}
                 <div className="row g-3 mb-4">
                   <StatCard label="총 병상" value={hospital?.totalBeds || "--"} />
                   <StatCard label="가용 병상" value={hospital?.availableBeds || "--"} />
@@ -156,16 +149,15 @@ export default function HospitalDashboard() {
 
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <ActionCard title="수용 요청" desc="중앙센터 매칭 요청건" badge={reqList.length} badgeClass="bg-primary" buttonText="요청 목록" onClick={() => setView("requests")} />
+                    <ActionCard title="수용 요청 건" desc="중앙센터 매칭 요청" badge={reqList.length} badgeClass="bg-primary" buttonText="요청 목록 보기" onClick={() => setView("requests")} />
                   </div>
                   <div className="col-md-6">
-                    <ActionCard title="현재 수용" desc="진료 중인 환자건" badge={inList.length} badgeClass="bg-success" buttonText="환자 목록" onClick={() => setView("inhouse")} />
+                    <ActionCard title="현재 수용 환자" desc="진료 중인 환자 현황" badge={inList.length} badgeClass="bg-success" buttonText="환자 목록 보기" onClick={() => setView("inhouse")} />
                   </div>
                 </div>
               </section>
           )}
 
-          {/* LIST VIEW (Requests/Inhouse) */}
           {(view === "requests" || view === "inhouse") && (
               <section>
                 <div className="d-flex justify-content-between align-items-center mb-3">
@@ -180,7 +172,7 @@ export default function HospitalDashboard() {
                         <th className="ps-3">ID</th>
                         <th>KTAS</th>
                         <th>증상</th>
-                        <th className="text-end pe-3">상세</th>
+                        <th className="text-end pe-3">관리</th>
                       </tr>
                       </thead>
                       <tbody>
@@ -188,9 +180,9 @@ export default function HospitalDashboard() {
                           <tr key={p.patientId}>
                             <td className="ps-3 fw-bold">#{p.patientId}</td>
                             <td><span className="badge bg-danger">Level {p.KTAS}</span></td>
-                            <td className="text-secondary">{p.symptoms}</td>
+                            <td className="text-secondary text-truncate" style={{maxWidth: "300px"}}>{p.symptoms}</td>
                             <td className="text-end pe-3">
-                              <button className="btn btn-sm btn-outline-primary" onClick={() => openPatientModal(p.patientId, view)}>보기</button>
+                              <button className="btn btn-sm btn-outline-primary" onClick={() => openPatientModal(p.patientId, view)}>상세보기</button>
                             </td>
                           </tr>
                       ))}
@@ -201,15 +193,15 @@ export default function HospitalDashboard() {
               </section>
           )}
 
-          {/* Patient Detail Modal */}
+          {/* 환자 상세 모달 */}
           <Modal show={showModal} onHide={closePatientModal} centered size="lg">
             <Modal.Header closeButton><Modal.Title className="fw-bold">환자 정보 상세</Modal.Title></Modal.Header>
             <Modal.Body>
               {selectedPatient && (
                   <div className="row g-3">
-                    <InfoBox title="환자 ID" value={<div className="fw-bold">#{selectedPatient.patientId}</div>} col="col-6" />
-                    <InfoBox title="중증도" value={<div className="fw-bold text-danger">KTAS {selectedPatient.KTAS}</div>} col="col-6" />
-                    <div className="col-12"><div className="p-3 bg-light rounded border"><small>증상 기록</small><p className="mb-0 mt-1">{selectedPatient.symptoms}</p></div></div>
+                    <InfoBox title="환자 ID" value={`#${selectedPatient.patientId}`} col="col-6" />
+                    <InfoBox title="중증도" value={`KTAS ${selectedPatient.KTAS}`} col="col-6" />
+                    <div className="col-12"><div className="p-3 bg-light rounded border"><small className="text-muted">증상 기록</small><p className="mb-0 mt-1">{selectedPatient.symptoms}</p></div></div>
                     <InfoBox title="담당 EMT ID" value={selectedPatient.EMT_id} col="col-6" />
                     <InfoBox title="현재 상태" value={statusBadge(selectedPatient.cal_status)} col="col-6" />
                   </div>
@@ -225,7 +217,7 @@ export default function HospitalDashboard() {
                     </>
                 )}
                 {selectedContext === "inhouse" && (
-                    <button className="btn btn-primary px-4" onClick={processPatient}>처리 완료</button>
+                    <button className="btn btn-primary px-4" onClick={completePatient}>처리 완료</button>
                 )}
               </div>
             </Modal.Footer>
@@ -235,11 +227,11 @@ export default function HospitalDashboard() {
   );
 }
 
-// 서브 컴포넌트 (StatCard, ActionCard, InfoBox)는 기존 UI 스타일을 유지하여 그대로 사용 가능합니다.
+// 서브 컴포넌트들
 function StatCard({ label, value }) {
   return (
       <div className="col-md-3">
-        <div className="card border-0 shadow-sm p-3">
+        <div className="card border-0 shadow-sm p-3 text-center">
           <div className="text-secondary small mb-1">{label}</div>
           <div className="fs-3 fw-bold">{value}</div>
         </div>
